@@ -1,0 +1,95 @@
+# Git workflow and deployment automation
+name: Deploy AXG Website
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [16.x, 18.x]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+          cache-dependency-path: |
+            frontend/package-lock.json
+            backend/package-lock.json
+
+      - name: Install Frontend Dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Install Backend Dependencies
+        run: |
+          cd backend
+          npm ci
+
+      - name: Run Frontend Tests
+        run: |
+          cd frontend
+          npm test -- --coverage --watchAll=false
+
+      - name: Build Frontend
+        run: |
+          cd frontend
+          npm run build
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: frontend-build
+          path: frontend/build/
+          retention-days: 7
+
+  deploy:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: frontend-build
+          path: frontend/build/
+
+      - name: Create Deployment Package
+        run: |
+          chmod +x deployment/deploy.sh
+          ./deployment/deploy.sh
+
+      - name: Deploy to cPanel via FTP
+        uses: SamKirkland/FTP-Deploy-Action@4.3.3
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: deployment/cpanel-ready/
+          server-dir: public_html/
+          exclude: |
+            api/
+            .git*
+            node_modules/
+
+      - name: Notify Deployment Success
+        if: success()
+        run: echo "✅ Deployment completed successfully!"
+
+      - name: Notify Deployment Failure
+        if: failure()
+        run: echo "❌ Deployment failed. Check logs for details."

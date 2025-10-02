@@ -1,0 +1,36 @@
+{
+  "name": "axg-website",
+  "version": "1.0.0",
+  "description": "AXG Camera Equipment Store - Complete deployment and maintenance scripts",
+  "scripts": {
+    "deploy": "./deployment/deploy.sh",
+    "update": "./update.sh",
+    "build:frontend": "cd frontend && npm run build",
+    "start:backend": "cd backend && npm start",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm start",
+    "install:all": "npm run install:frontend && npm run install:backend",
+    "install:frontend": "cd frontend && npm install",
+    "install:backend": "cd backend && npm install",
+    "test:frontend": "cd frontend && npm test",
+    "build:production": "npm run build:frontend && ./deployment/deploy.sh",
+    "git:setup": "git remote add origin https://github.com/yourusername/axg-camera-store.git",
+    "git:push": "git add . && git commit -m 'Update AXG website' && git push origin main"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/axg-camera-store.git"
+  },
+  "keywords": [
+    "camera-equipment",
+    "ecommerce",
+    "react",
+    "nodejs",
+    "mongodb"
+  ],
+  "author": "AXG Camera Store",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
