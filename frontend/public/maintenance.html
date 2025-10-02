@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Maintenance Mode | AXG-Photo</title>
+    <meta
+      name="description"
+      content="AXG-Photo is currently undergoing maintenance. We'll be back shortly with improvements."
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        color: #1d1d1b;
+        line-height: 1.6;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+      }
+
+      .maintenance-container {
+        text-align: center;
+        max-width: 700px;
+        width: 100%;
+        background: #ffffff;
+        padding: 3rem;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(64, 64, 64, 0.1);
+        border: 1px solid rgba(64, 64, 64, 0.1);
+      }
+
+      .maintenance-icon {
+        font-size: 4rem;
+        margin-bottom: 2rem;
+        animation: pulse 2s ease-in-out infinite alternate;
+      }
+
+      .maintenance-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #1d1d1b;
+        margin-bottom: 1rem;
+        letter-spacing: -0.02em;
+      }
+
+      .maintenance-message {
+        font-size: 1.2rem;
+        color: #404040;
+        margin-bottom: 2rem;
+        line-height: 1.6;
+      }
+
+      .progress-container {
+        background: rgba(64, 64, 64, 0.1);
+        border-radius: 25px;
+        height: 8px;
+        margin: 2rem 0;
+        overflow: hidden;
+      }
+
+      .progress-bar {
+        background: linear-gradient(90deg, #404040, #1d1d1b);
+        height: 100%;
+        border-radius: 25px;
+        width: 0%;
+        animation: loading 3s ease-in-out infinite;
+      }
+
+      .eta-info {
+        background: rgba(64, 64, 64, 0.05);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin: 2rem 0;
+      }
+
+      .eta-info h3 {
+        color: #1d1d1b;
+        margin-bottom: 1rem;
+        font-size: 1.3rem;
+      }
+
+      .eta-time {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #404040;
+        margin-bottom: 0.5rem;
+      }
+
+      .social-links {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 2rem;
+      }
+
+      .social-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 50px;
+        height: 50px;
+        background: #404040;
+        color: #ffffff;
+        border-radius: 50%;
+        text-decoration: none;
+        font-size: 1.2rem;
+        transition: all 0.3s ease;
+      }
+
+      .social-link:hover {
+        background: #1d1d1b;
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(29, 29, 27, 0.2);
+      }
+
+      .contact-emergency {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-top: 2rem;
+        border-left: 4px solid #404040;
+      }
+
+      .contact-emergency h4 {
+        color: #1d1d1b;
+        margin-bottom: 0.5rem;
+      }
+
+      .contact-emergency p {
+        color: #404040;
+        margin: 0;
+      }
+
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+        }
+        100% {
+          transform: scale(1.1);
+        }
+      }
+
+      @keyframes loading {
+        0% {
+          width: 0%;
+        }
+        50% {
+          width: 70%;
+        }
+        100% {
+          width: 100%;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .maintenance-container {
+          padding: 2rem;
+          margin: 1rem;
+        }
+
+        .maintenance-title {
+          font-size: 2rem;
+        }
+
+        .maintenance-message {
+          font-size: 1.1rem;
+        }
+
+        .social-links {
+          gap: 0.5rem;
+        }
+
+        .social-link {
+          width: 45px;
+          height: 45px;
+          font-size: 1.1rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="maintenance-container">
+      <div class="maintenance-icon">🔧</div>
+      <h1 class="maintenance-title">We're Making Things Better</h1>
+      <p class="maintenance-message">
+        AXG-Photo is currently undergoing scheduled maintenance to improve your
+        shopping experience. We're working hard to bring you enhanced features
+        and better performance.
+      </p>
+
+      <div class="progress-container">
+        <div class="progress-bar"></div>
+      </div>
+
+      <div class="eta-info">
+        <h3>Estimated Time Remaining</h3>
+        <div class="eta-time" id="countdown">2:30:00</div>
+        <p>We'll be back online shortly. Thank you for your patience!</p>
+      </div>
+
+      <div class="social-links">
+        <a href="#" class="social-link" title="Facebook" aria-label="Facebook"
+          >📘</a
+        >
+        <a href="#" class="social-link" title="Twitter" aria-label="Twitter"
+          >🐦</a
+        >
+        <a href="#" class="social-link" title="Instagram" aria-label="Instagram"
+          >📷</a
+        >
+        <a href="#" class="social-link" title="YouTube" aria-label="YouTube"
+          >📺</a
+        >
+      </div>
+
+      <div class="contact-emergency">
+        <h4>Need Immediate Assistance?</h4>
+        <p>
+          📧 Email: support@axg-photo.com<br />
+          📞 Emergency Line: (555) 123-4567<br />
+          🕐 Available 24/7 for urgent matters
+        </p>
+      </div>
+    </div>
+
+    <script>
+      // Countdown timer (example: 2.5 hours)
+      let timeLeft = 2.5 * 60 * 60; // 2.5 hours in seconds
+
+      function updateCountdown() {
+        const hours = Math.floor(timeLeft / 3600);
+        const minutes = Math.floor((timeLeft % 3600) / 60);
+        const seconds = timeLeft % 60;
+
+        document.getElementById("countdown").textContent = `${hours}:${minutes
+          .toString()
+          .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+
+        if (timeLeft > 0) {
+          timeLeft--;
+        } else {
+          // Maintenance complete - you might want to redirect or show a completion message
+          document.getElementById("countdown").textContent =
+            "Maintenance Complete!";
+          setTimeout(() => {
+            window.location.reload();
+          }, 3000);
+        }
+      }
+
+      // Update countdown every second
+      setInterval(updateCountdown, 1000);
+      updateCountdown(); // Initial call
+
+      // Auto-refresh every 5 minutes to check if maintenance is complete
+      setInterval(() => {
+        fetch("/")
+          .then((response) => {
+            if (response.ok) {
+              window.location.reload();
+            }
+          })
+          .catch(() => {
+            // Still in maintenance, do nothing
+          });
+      }, 5 * 60 * 1000); // 5 minutes
+    </script>
+  </body>
+</html>

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>500 - Server Error | AXG-Photo</title>
+    <meta
+      name="description"
+      content="We're experiencing technical difficulties. Please try again later or contact our support team."
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        background: #ffffff;
+        color: #1d1d1b;
+        line-height: 1.6;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+      }
+
+      .error-container {
+        text-align: center;
+        max-width: 600px;
+        width: 100%;
+      }
+
+      .error-code {
+        font-size: 8rem;
+        font-weight: 800;
+        color: #e74c3c;
+        margin-bottom: 1rem;
+        line-height: 1;
+        letter-spacing: -0.02em;
+      }
+
+      .error-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #1d1d1b;
+        margin-bottom: 1rem;
+        letter-spacing: -0.02em;
+      }
+
+      .error-message {
+        font-size: 1.2rem;
+        color: #404040;
+        margin-bottom: 2.5rem;
+        line-height: 1.6;
+      }
+
+      .action-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        align-items: center;
+        margin-bottom: 2rem;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem 2rem;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        min-width: 200px;
+        border: 2px solid;
+        cursor: pointer;
+      }
+
+      .btn-primary {
+        background: #404040;
+        color: #ffffff;
+        border-color: #404040;
+      }
+
+      .btn-primary:hover {
+        background: #1d1d1b;
+        border-color: #1d1d1b;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(29, 29, 27, 0.2);
+      }
+
+      .btn-secondary {
+        background: transparent;
+        color: #404040;
+        border-color: #404040;
+      }
+
+      .btn-secondary:hover {
+        background: #404040;
+        color: #ffffff;
+        transform: translateY(-2px);
+      }
+
+      .status-info {
+        background: rgba(64, 64, 64, 0.05);
+        border-radius: 12px;
+        padding: 2rem;
+        margin-top: 2rem;
+      }
+
+      .status-info h3 {
+        color: #1d1d1b;
+        margin-bottom: 1rem;
+        font-size: 1.3rem;
+      }
+
+      .status-info p {
+        color: #404040;
+        margin-bottom: 1rem;
+      }
+
+      .contact-info {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-top: 1rem;
+      }
+
+      .contact-info strong {
+        color: #1d1d1b;
+      }
+
+      @media (max-width: 768px) {
+        .error-code {
+          font-size: 6rem;
+        }
+
+        .error-title {
+          font-size: 2rem;
+        }
+
+        .error-message {
+          font-size: 1.1rem;
+        }
+
+        .btn {
+          min-width: auto;
+          width: 100%;
+          max-width: 300px;
+        }
+
+        .status-info {
+          padding: 1.5rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="error-container">
+      <div class="error-code">500</div>
+      <h1 class="error-title">Server Error</h1>
+      <p class="error-message">
+        We're experiencing some technical difficulties on our end. Our team has
+        been notified and is working to resolve the issue as quickly as
+        possible.
+      </p>
+
+      <div class="action-buttons">
+        <button onclick="window.location.reload()" class="btn btn-primary">
+          🔄 Try Again
+        </button>
+        <a href="/" class="btn btn-secondary"> 🏠 Back to Homepage </a>
+      </div>
+
+      <div class="status-info">
+        <h3>What can you do?</h3>
+        <p>• Try refreshing the page in a few moments</p>
+        <p>• Check our social media for updates</p>
+        <p>• Contact our support team if the problem persists</p>
+
+        <div class="contact-info">
+          <strong>Need immediate assistance?</strong><br />
+          📧 Email: support@axg-photo.com<br />
+          📞 Phone: (555) 123-4567<br />
+          🕐 Support Hours: Mon-Fri 9AM-6PM EST
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Track 500 errors for analytics (if you have analytics setup)
+      if (window.gtag) {
+        gtag("event", "exception", {
+          description: "500 - Server Error: " + window.location.pathname,
+          fatal: true,
+        });
+      }
+
+      // Auto-retry after 30 seconds (optional)
+      let retryCount = 0;
+      const maxRetries = 3;
+
+      function autoRetry() {
+        if (retryCount < maxRetries) {
+          setTimeout(() => {
+            retryCount++;
+            console.log(`Auto-retry attempt ${retryCount}/${maxRetries}`);
+            window.location.reload();
+          }, 30000 * retryCount); // Exponential backoff
+        }
+      }
+
+      // Start auto-retry
+      autoRetry();
+    </script>
+  </body>
+</html>
