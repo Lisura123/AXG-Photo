@@ -1,0 +1,334 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Admin Dashboard Enhanced Styles */
+.admin-dashboard {
+  background-color: #ffffff;
+  min-height: 100vh;
+  padding: 1.5rem;
+}
+
+/* Enhanced Metric Cards */
+.metric-card {
+  border-radius: 12px !important;
+  border: 1px solid rgba(64, 64, 64, 0.1) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  overflow: hidden;
+  position: relative;
+}
+
+.metric-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #404040, #1d1d1b);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.metric-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(64, 64, 64, 0.15) !important;
+  border-color: rgba(64, 64, 64, 0.2) !important;
+}
+
+.metric-card:hover::before {
+  opacity: 1;
+}
+
+.metric-card .metric-icon {
+  transition: all 0.3s ease;
+}
+
+.metric-card:hover .metric-icon {
+  transform: scale(1.1);
+}
+
+/* Enhanced Cards */
+.admin-dashboard .card {
+  border-radius: 12px !important;
+  border: 1px solid rgba(64, 64, 64, 0.1) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.admin-dashboard .card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(64, 64, 64, 0.12) !important;
+  border-color: rgba(64, 64, 64, 0.2) !important;
+}
+
+.admin-dashboard .card-header {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%) !important;
+  border-bottom: 1px solid rgba(64, 64, 64, 0.1) !important;
+  border-radius: 12px 12px 0 0 !important;
+}
+
+/* Enhanced Table */
+.admin-dashboard .table {
+  margin-bottom: 0;
+}
+
+.admin-dashboard .table th {
+  background-color: #f8f9fa !important;
+  color: #404040 !important;
+  font-weight: 600 !important;
+  border: none !important;
+  padding: 1rem !important;
+  font-size: 0.9rem;
+}
+
+.admin-dashboard .table td {
+  border: none !important;
+  padding: 1rem !important;
+  vertical-align: middle;
+  border-bottom: 1px solid rgba(64, 64, 64, 0.05) !important;
+}
+
+.admin-dashboard .table-hover tbody tr:hover {
+  background-color: rgba(64, 64, 64, 0.02) !important;
+  transform: scale(1.005);
+  transition: all 0.2s ease;
+}
+
+/* Enhanced Quick Action Cards */
+.quick-action-card {
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%) !important;
+  border: 2px solid rgba(64, 64, 64, 0.1) !important;
+  border-radius: 12px !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  cursor: pointer !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.quick-action-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(64, 64, 64, 0.1),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.quick-action-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 35px rgba(64, 64, 64, 0.15) !important;
+  border-color: #404040 !important;
+  background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%) !important;
+}
+
+.quick-action-card:hover::before {
+  left: 100%;
+}
+
+.quick-action-card:hover svg {
+  transform: scale(1.2);
+  color: #1d1d1b !important;
+}
+
+.quick-action-card svg {
+  transition: all 0.3s ease;
+}
+
+/* Enhanced List Group */
+.admin-dashboard .list-group-item {
+  border: none !important;
+  border-bottom: 1px solid rgba(64, 64, 64, 0.05) !important;
+  transition: all 0.2s ease;
+}
+
+.admin-dashboard .list-group-item:hover {
+  background-color: rgba(64, 64, 64, 0.02) !important;
+  transform: translateX(5px);
+  padding-left: 1.5rem !important;
+}
+
+.admin-dashboard .list-group-item:last-child {
+  border-bottom: none !important;
+}
+
+/* Enhanced Progress Bar */
+.admin-dashboard .progress {
+  height: 6px !important;
+  border-radius: 10px !important;
+  background-color: rgba(64, 64, 64, 0.1) !important;
+}
+
+.admin-dashboard .progress-bar {
+  background: linear-gradient(90deg, #404040, #1d1d1b) !important;
+  border-radius: 10px !important;
+  transition: width 0.6s ease;
+}
+
+/* Enhanced Badges */
+.admin-dashboard .badge {
+  border-radius: 8px !important;
+  padding: 0.5rem 0.75rem !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.025em;
+  transition: all 0.2s ease;
+}
+
+.admin-dashboard .badge:hover {
+  transform: scale(1.05);
+}
+
+/* Page Header Enhancement */
+.admin-dashboard h1 {
+  position: relative;
+  padding-bottom: 0.5rem;
+}
+
+.admin-dashboard h1::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, #404040, #1d1d1b);
+  border-radius: 2px;
+}
+
+/* Responsive Enhancements */
+@media (max-width: 768px) {
+  .admin-dashboard {
+    padding: 1rem;
+  }
+
+  .admin-dashboard h1::after {
+    width: 40px;
+    height: 2px;
+  }
+
+  .metric-card:hover {
+    transform: translateY(-2px);
+  }
+
+  .quick-action-card:hover {
+    transform: translateY(-2px);
+  }
+
+  .admin-dashboard .card:hover {
+    transform: translateY(-1px);
+  }
+
+  .admin-dashboard .table th,
+  .admin-dashboard .table td {
+    padding: 0.75rem !important;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .admin-dashboard {
+    padding: 0.75rem;
+  }
+
+  .metric-card .card-body {
+    padding: 1rem !important;
+  }
+
+  .metric-card h3 {
+    font-size: 1.5rem !important;
+  }
+
+  .metric-icon {
+    width: 50px !important;
+    height: 50px !important;
+  }
+
+  .quick-action-card {
+    padding: 1.5rem !important;
+  }
+
+  .quick-action-card svg {
+    width: 28px !important;
+    height: 28px !important;
+  }
+}
+
+/* Animation for loading states */
+@keyframes shimmer {
+  0% {
+    background-position: -468px 0;
+  }
+  100% {
+    background-position: 468px 0;
+  }
+}
+
+.loading-shimmer {
+  animation: shimmer 1.5s ease-in-out infinite;
+  background: linear-gradient(to right, #f6f7f8 8%, #edeef1 18%, #f6f7f8 33%);
+  background-size: 800px 104px;
+}
+
+/* Enhanced status colors */
+.badge.bg-success {
+  background: linear-gradient(135deg, #28a745, #20c997) !important;
+}
+
+.badge.bg-warning {
+  background: linear-gradient(135deg, #ffc107, #fd7e14) !important;
+}
+
+.badge.bg-info {
+  background: linear-gradient(135deg, #17a2b8, #007bff) !important;
+}
+
+.badge.bg-secondary {
+  background: linear-gradient(135deg, #6c757d, #495057) !important;
+}
+
+.badge.bg-primary {
+  background: linear-gradient(135deg, #007bff, #0056b3) !important;
+}
