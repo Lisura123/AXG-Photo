@@ -39,13 +39,15 @@ git status --porcelain
 echo ""
 echo "🔄 AXG Website Update Workflow"
 echo "================================"
-echo "1. Commit & Push to GitHub"
+echo "1. Commit & Push to GitHub (main branch)"
 echo "2. Build & Deploy to cPanel"
-echo "3. Both (Recommended)"
-echo "4. Exit"
+echo "3. Update GitHub Pages"
+echo "4. Full GitHub Workflow (main + Pages)"
+echo "5. Complete Workflow (GitHub + cPanel)"
+echo "6. Exit"
 echo ""
 
-read -p "Select option (1-4): " choice
+read -p "Select option (1-6): " choice
 
 case $choice in
     1)
@@ -86,7 +88,121 @@ case $choice in
         ;;
         
     3)
-        print_status "Starting complete workflow (Git + Deployment)..."
+        print_status "Updating GitHub Pages..."
+        
+        # Check if gh-pages branch exists
+        if ! git show-ref --verify --quiet refs/heads/gh-pages; then
+            print_status "Creating gh-pages branch..."
+            git checkout -b gh-pages
+            git push -u origin gh-pages
+            git checkout main
+        fi
+        
+        # Switch to gh-pages branch
+        current_branch=$(git branch --show-current)
+        git checkout gh-pages
+        
+        # Build frontend
+        print_status "Building frontend for GitHub Pages..."
+        cd frontend
+        if npm run build; then
+            cd ..
+            
+            # Copy build files to root
+            print_status "Copying build files..."
+            cp -r frontend/build/* .
+            
+            # Commit and push
+            git add .
+            git commit -m "Update GitHub Pages - $(date +%Y-%m-%d %H:%M:%S)"
+            
+            if git push origin gh-pages; then
+                print_success "GitHub Pages updated successfully!"
+                print_status "Your site will be available at: https://$(git config remote.origin.url | sed 's/.*github.com[:/]\([^/]*\)\/\([^.]*\).*/\1.github.io\/\2/')/"
+            else
+                print_error "Failed to push to GitHub Pages"
+            fi
+        else
+            print_error "Frontend build failed"
+            cd ..
+        fi
+        
+        # Switch back to main branch
+        git checkout $current_branch
+        ;;
+        
+    4)
+        print_status "Starting full GitHub workflow (main + Pages)..."
+        
+        # First update main branch
+        if [ ! -z "$(git status --porcelain)" ]; then
+            git add .
+            
+            read -p "Enter commit message: " commit_msg
+            
+            if [ -z "$commit_msg" ]; then
+                commit_msg="Update AXG website - $(date +%Y-%m-%d)"
+            fi
+            
+            git commit -m "$commit_msg"
+            git push origin main
+            
+            if [ $? -eq 0 ]; then
+                print_success "Main branch updated successfully!"
+            else
+                print_error "Failed to push to GitHub main branch"
+                exit 1
+            fi
+        else
+            print_warning "No changes to commit to main branch"
+        fi
+        
+        # Then update GitHub Pages
+        print_status "Now updating GitHub Pages..."
+        
+        # Check if gh-pages branch exists
+        if ! git show-ref --verify --quiet refs/heads/gh-pages; then
+            print_status "Creating gh-pages branch..."
+            git checkout -b gh-pages
+            git push -u origin gh-pages
+            git checkout main
+        fi
+        
+        # Switch to gh-pages branch
+        current_branch=$(git branch --show-current)
+        git checkout gh-pages
+        
+        # Build frontend
+        print_status "Building frontend for GitHub Pages..."
+        cd frontend
+        if npm run build; then
+            cd ..
+            
+            # Copy build files to root
+            print_status "Copying build files..."
+            cp -r frontend/build/* .
+            
+            # Commit and push
+            git add .
+            git commit -m "Update GitHub Pages - $(date +%Y-%m-%d %H:%M:%S)"
+            
+            if git push origin gh-pages; then
+                print_success "GitHub Pages updated successfully!"
+                print_status "Your site will be available at: https://$(git config remote.origin.url | sed 's/.*github.com[:/]\([^/]*\)\/\([^.]*\).*/\1.github.io\/\2/')/"
+            else
+                print_error "Failed to push to GitHub Pages"
+            fi
+        else
+            print_error "Frontend build failed"
+            cd ..
+        fi
+        
+        # Switch back to main branch
+        git checkout $current_branch
+        ;;
+        
+    5)
+        print_status "Starting complete workflow (GitHub + cPanel)..."
         
         # Git workflow
         if [ ! -z "$(git status --porcelain)" ]; then
@@ -119,7 +235,7 @@ case $choice in
         fi
         ;;
         
-    4)
+    6)
         print_status "Exiting..."
         exit 0
         ;;
