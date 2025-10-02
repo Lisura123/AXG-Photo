@@ -283,63 +283,265 @@ router.get("/products/new-arrivals", async (req, res) => {
   }
 });
 
-// GET /api/products/search/autocomplete - Get search suggestions
+// GET /api/products/search/autocomplete - Get search suggestions with enhanced relevance and fuzzy search
 router.get("/products/search/autocomplete", async (req, res) => {
   try {
-    const { q = "", limit = 10 } = req.query;
+    const { q = "", limit = 10, category = "" } = req.query;
 
     if (!q || q.length < 2) {
       return res.status(200).json({
         success: true,
         message: "Search suggestions retrieved successfully",
-        data: [],
+        data: { products: [], categories: [], total: 0 },
       });
     }
 
-    const searchRegex = { $regex: q, $options: "i" };
+    // Normalize search query for better matching
+    const normalizedQuery = q.toLowerCase().trim();
 
-    // Get product suggestions with highlighted matches
-    const products = await Product.find({
+    // Create fuzzy search patterns for common typos
+    const createFuzzyPatterns = (query) => {
+      const patterns = [query];
+
+      // Common photography brand typos
+      const typoMap = {
+        cannon: "canon",
+        soney: "sony",
+        nikon: "nikon",
+        tameron: "tamron",
+        sigm: "sigma",
+        lens: "lens",
+        lense: "lens",
+        baterry: "battery",
+        battry: "battery",
+        charger: "charger",
+        chargr: "charger",
+        filter: "filter",
+        filtr: "filter",
+      };
+
+      // Add corrected versions
+      Object.keys(typoMap).forEach((typo) => {
+        if (query.includes(typo)) {
+          patterns.push(query.replace(typo, typoMap[typo]));
+        }
+      });
+
+      return [...new Set(patterns)]; // Remove duplicates
+    };
+
+    const fuzzyPatterns = createFuzzyPatterns(normalizedQuery);
+
+    // Build advanced search conditions with relevance scoring
+    const buildSearchConditions = () => {
+      const conditions = [];
+
+      fuzzyPatterns.forEach((pattern) => {
+        // Exact matches (highest priority)
+        conditions.push({
+          $or: [
+            { name: { $regex: `^${pattern}`, $options: "i" } }, // Starts with
+            { brand: { $regex: `^${pattern}`, $options: "i" } },
+            { model: { $regex: `^${pattern}`, $options: "i" } },
+          ],
+        });
+
+        // Word matches (medium priority)
+        conditions.push({
+          $or: [
+            { name: { $regex: `\\b${pattern}`, $options: "i" } },
+            { brand: { $regex: `\\b${pattern}`, $options: "i" } },
+            { description: { $regex: `\\b${pattern}`, $options: "i" } },
+          ],
+        });
+
+        // Contains matches (lower priority)
+        conditions.push({
+          $or: [
+            { name: { $regex: pattern, $options: "i" } },
+            { brand: { $regex: pattern, $options: "i" } },
+            { description: { $regex: pattern, $options: "i" } },
+            { model: { $regex: pattern, $options: "i" } },
+          ],
+        });
+      });
+
+      return conditions;
+    };
+
+    // Base query conditions
+    let baseQuery = {
       isActive: true,
       status: "Active",
-      $or: [
-        { name: searchRegex },
-        { brand: searchRegex },
-        { description: searchRegex },
-      ],
-    })
-      .populate("category", "name slug")
-      .select("name brand category image description")
-      .sort({ name: 1 })
-      .limit(parseInt(limit));
+      $or: buildSearchConditions(),
+    };
 
-    // Format suggestions with highlighted text and metadata
+    // Apply category filter if provided
+    if (category && category.trim()) {
+      const categoryDoc = await Category.findOne({
+        slug: category.trim(),
+        isActive: true,
+      });
+      if (categoryDoc) {
+        baseQuery.category = categoryDoc._id;
+      }
+    }
+
+    // Get product suggestions with advanced sorting for relevance
+    const products = await Product.aggregate([
+      {
+        $match: baseQuery,
+      },
+      {
+        $lookup: {
+          from: "categories",
+          localField: "category",
+          foreignField: "_id",
+          as: "categoryInfo",
+        },
+      },
+      {
+        $unwind: { path: "$categoryInfo", preserveNullAndEmptyArrays: true },
+      },
+      {
+        $addFields: {
+          // Calculate relevance score
+          relevanceScore: {
+            $add: [
+              // Exact name match bonus
+              {
+                $cond: [
+                  {
+                    $regexMatch: {
+                      input: "$name",
+                      regex: new RegExp(`^${normalizedQuery}`, "i"),
+                    },
+                  },
+                  100,
+                  0,
+                ],
+              },
+              // Name starts with query bonus
+              {
+                $cond: [
+                  {
+                    $regexMatch: {
+                      input: "$name",
+                      regex: new RegExp(`^${normalizedQuery}`, "i"),
+                    },
+                  },
+                  50,
+                  0,
+                ],
+              },
+              // Brand match bonus
+              {
+                $cond: [
+                  {
+                    $regexMatch: {
+                      input: "$brand",
+                      regex: new RegExp(normalizedQuery, "i"),
+                    },
+                  },
+                  30,
+                  0,
+                ],
+              },
+              // Featured product bonus
+              { $cond: ["$isFeatured", 20, 0] },
+              // Stock availability bonus
+              { $cond: [{ $gt: ["$stockQuantity", 0] }, 10, 0] },
+              // Rating bonus (0-10 points based on rating)
+              { $multiply: ["$averageRating", 2] },
+              // Recent activity bonus (newer products get slight boost)
+              {
+                $cond: [
+                  {
+                    $gte: [
+                      "$createdAt",
+                      { $subtract: [new Date(), 86400000 * 30] },
+                    ],
+                  },
+                  5,
+                  0,
+                ],
+              },
+            ],
+          },
+        },
+      },
+      {
+        $project: {
+          name: 1,
+          brand: 1,
+          model: 1,
+          image: 1,
+          averageRating: 1,
+          reviewsCount: 1,
+          stockQuantity: 1,
+          isFeatured: 1,
+          createdAt: 1,
+          relevanceScore: 1,
+          category: "$categoryInfo.name",
+          categorySlug: "$categoryInfo.slug",
+        },
+      },
+      {
+        $sort: {
+          relevanceScore: -1,
+          averageRating: -1,
+          reviewsCount: -1,
+          name: 1,
+        },
+      },
+      {
+        $limit: parseInt(limit) || 8,
+      },
+    ]);
+
+    // Format product suggestions
     const suggestions = products.map((product) => ({
       id: product._id,
       name: product.name,
       brand: product.brand,
-      category: product.category?.name || "Uncategorized",
+      model: product.model,
+      category: product.category || "Uncategorized",
+      categorySlug: product.categorySlug,
       image: product.image || null,
+      rating: product.averageRating || 0,
+      reviewsCount: product.reviewsCount || 0,
+      inStock: product.stockQuantity > 0,
+      isFeatured: product.isFeatured,
       type: "product",
-      // For highlighting matches in frontend
+      relevanceScore: product.relevanceScore,
       searchQuery: q,
     }));
 
-    // Also get category suggestions
-    const categories = await Category.find({
-      isActive: true,
-      $or: [{ name: searchRegex }, { slug: searchRegex }],
-    })
-      .select("name slug")
-      .limit(3);
+    // Get category suggestions (if not filtering by category)
+    let categorySuggestions = [];
+    if (!category) {
+      const searchRegex = { $regex: normalizedQuery, $options: "i" };
+      const categories = await Category.find({
+        isActive: true,
+        $or: [
+          { name: searchRegex },
+          { slug: searchRegex },
+          { description: searchRegex },
+        ],
+      })
+        .select("name slug description")
+        .sort({ name: 1 })
+        .limit(3);
 
-    const categorySuggestions = categories.map((category) => ({
-      id: category._id,
-      name: category.name,
-      slug: category.slug,
-      type: "category",
-      searchQuery: q,
-    }));
+      categorySuggestions = categories.map((cat) => ({
+        id: cat._id,
+        name: cat.name,
+        slug: cat.slug,
+        description: cat.description,
+        type: "category",
+        searchQuery: q,
+      }));
+    }
 
     res.status(200).json({
       success: true,
@@ -348,6 +550,10 @@ router.get("/products/search/autocomplete", async (req, res) => {
         products: suggestions,
         categories: categorySuggestions,
         total: suggestions.length + categorySuggestions.length,
+        query: q,
+        appliedFilters: {
+          category: category || null,
+        },
       },
     });
   } catch (error) {
@@ -355,6 +561,124 @@ router.get("/products/search/autocomplete", async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error retrieving search suggestions",
+      error: error.message,
+    });
+  }
+});
+
+// GET /api/products/search/popular - Get popular/trending products for search suggestions
+router.get("/products/search/popular", async (req, res) => {
+  try {
+    const { limit = 5, category = "" } = req.query;
+
+    let baseQuery = {
+      isActive: true,
+      status: "Active",
+    };
+
+    // Apply category filter if provided
+    if (category && category.trim()) {
+      const categoryDoc = await Category.findOne({
+        slug: category.trim(),
+        isActive: true,
+      });
+      if (categoryDoc) {
+        baseQuery.category = categoryDoc._id;
+      }
+    }
+
+    // Get popular products based on multiple factors
+    const popularProducts = await Product.aggregate([
+      { $match: baseQuery },
+      {
+        $lookup: {
+          from: "categories",
+          localField: "category",
+          foreignField: "_id",
+          as: "categoryInfo",
+        },
+      },
+      {
+        $unwind: { path: "$categoryInfo", preserveNullAndEmptyArrays: true },
+      },
+      {
+        $addFields: {
+          // Calculate popularity score
+          popularityScore: {
+            $add: [
+              // Rating contribution (0-25 points)
+              { $multiply: ["$averageRating", 5] },
+              // Review count contribution (capped at 25 points)
+              { $min: [{ $divide: ["$reviewsCount", 4] }, 25] },
+              // Featured product bonus
+              { $cond: ["$isFeatured", 20, 0] },
+              // Stock availability bonus
+              { $cond: [{ $gt: ["$stockQuantity", 0] }, 10, 0] },
+              // Recent product bonus
+              {
+                $cond: [
+                  {
+                    $gte: [
+                      "$createdAt",
+                      { $subtract: [new Date(), 86400000 * 30] },
+                    ],
+                  },
+                  15,
+                  0,
+                ],
+              },
+            ],
+          },
+        },
+      },
+      {
+        $project: {
+          name: 1,
+          brand: 1,
+          image: 1,
+          averageRating: 1,
+          reviewsCount: 1,
+          isFeatured: 1,
+          popularityScore: 1,
+          category: "$categoryInfo.name",
+          categorySlug: "$categoryInfo.slug",
+        },
+      },
+      {
+        $sort: {
+          popularityScore: -1,
+          averageRating: -1,
+          reviewsCount: -1,
+        },
+      },
+      {
+        $limit: parseInt(limit) || 5,
+      },
+    ]);
+
+    const formattedProducts = popularProducts.map((product) => ({
+      id: product._id,
+      name: product.name,
+      brand: product.brand,
+      category: product.category || "Uncategorized",
+      categorySlug: product.categorySlug,
+      image: product.image || null,
+      rating: product.averageRating || 0,
+      reviewsCount: product.reviewsCount || 0,
+      isFeatured: product.isFeatured,
+      type: "popular-product",
+    }));
+
+    res.status(200).json({
+      success: true,
+      message: "Popular products retrieved successfully",
+      data: formattedProducts,
+    });
+  } catch (error) {
+    console.error("Error fetching popular products:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error retrieving popular products",
       error: error.message,
     });
   }

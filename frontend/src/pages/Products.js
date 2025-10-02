@@ -930,11 +930,14 @@ const Products = () => {
                 {/* Search Suggestions */}
                 <SearchSuggestions
                   query={searchTerm}
-                  isVisible={showSuggestions && searchTerm.length > 0}
+                  isVisible={showSuggestions}
                   onSuggestionClick={handleSuggestionClick}
                   onClose={() => {
                     setShowSuggestions(false);
                   }}
+                  selectedCategory={
+                    filterCategory !== "all" ? filterCategory : null
+                  }
                   apiBase={API_BASE}
                 />
               </div>
