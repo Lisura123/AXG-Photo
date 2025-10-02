@@ -152,11 +152,16 @@ router.get("/products", async (req, res) => {
     }
 
     if (search) {
+      // Enhanced search with better matching and category names
+      const searchRegex = { $regex: search, $options: "i" };
       filter.$or = [
-        { name: { $regex: search, $options: "i" } },
-        { description: { $regex: search, $options: "i" } },
-        { brand: { $regex: search, $options: "i" } },
-        { features: { $elemMatch: { $regex: search, $options: "i" } } },
+        { name: searchRegex },
+        { description: searchRegex },
+        { brand: searchRegex },
+        { features: { $elemMatch: searchRegex } },
+        // Also search in category names
+        { "category.name": searchRegex },
+        { "category.slug": searchRegex },
       ];
     }
 
@@ -273,6 +278,83 @@ router.get("/products/new-arrivals", async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error retrieving new arrivals",
+      error: error.message,
+    });
+  }
+});
+
+// GET /api/products/search/autocomplete - Get search suggestions
+router.get("/products/search/autocomplete", async (req, res) => {
+  try {
+    const { q = "", limit = 10 } = req.query;
+
+    if (!q || q.length < 2) {
+      return res.status(200).json({
+        success: true,
+        message: "Search suggestions retrieved successfully",
+        data: [],
+      });
+    }
+
+    const searchRegex = { $regex: q, $options: "i" };
+
+    // Get product suggestions with highlighted matches
+    const products = await Product.find({
+      isActive: true,
+      status: "Active",
+      $or: [
+        { name: searchRegex },
+        { brand: searchRegex },
+        { description: searchRegex },
+      ],
+    })
+      .populate("category", "name slug")
+      .select("name brand category image description")
+      .sort({ name: 1 })
+      .limit(parseInt(limit));
+
+    // Format suggestions with highlighted text and metadata
+    const suggestions = products.map((product) => ({
+      id: product._id,
+      name: product.name,
+      brand: product.brand,
+      category: product.category?.name || "Uncategorized",
+      image: product.image || null,
+      type: "product",
+      // For highlighting matches in frontend
+      searchQuery: q,
+    }));
+
+    // Also get category suggestions
+    const categories = await Category.find({
+      isActive: true,
+      $or: [{ name: searchRegex }, { slug: searchRegex }],
+    })
+      .select("name slug")
+      .limit(3);
+
+    const categorySuggestions = categories.map((category) => ({
+      id: category._id,
+      name: category.name,
+      slug: category.slug,
+      type: "category",
+      searchQuery: q,
+    }));
+
+    res.status(200).json({
+      success: true,
+      message: "Search suggestions retrieved successfully",
+      data: {
+        products: suggestions,
+        categories: categorySuggestions,
+        total: suggestions.length + categorySuggestions.length,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching search suggestions:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error retrieving search suggestions",
       error: error.message,
     });
   }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Container,
@@ -15,6 +15,7 @@ import {
 } from "react-bootstrap";
 import { Heart, Eye, Star, Search } from "lucide-react";
 import { useApp } from "../context/AppContext";
+import SearchSuggestions from "../components/SearchSuggestions";
 
 const Products = () => {
   const navigate = useNavigate();
@@ -197,6 +198,40 @@ const Products = () => {
         }
         .view-toggle-btn:not(.active):hover {
           background: rgba(64, 64, 64, 0.05) !important;
+        }
+        
+        /* Mobile Responsive Search Styles */
+        @media (max-width: 768px) {
+          .modern-filters-section {
+            padding: 1.5rem !important;
+            margin: 1rem 0 !important;
+          }
+          .search-input, .professional-select {
+            font-size: 0.95rem !important;
+            padding: 0.65rem 0.9rem !important;
+          }
+          .search-suggestions {
+            max-height: 300px !important;
+            font-size: 0.9rem !important;
+          }
+          .suggestion-item {
+            padding: 0.75rem !important;
+          }
+          .suggestion-image {
+            width: 35px !important;
+            height: 35px !important;
+          }
+        }
+        
+        @media (max-width: 576px) {
+          .modern-filters-section {
+            padding: 1rem !important;
+            border-radius: 12px !important;
+          }
+          .filters-section {
+            padding: 1rem !important;
+          }
+        }
           transform: translateY(-1px) !important;
           box-shadow: 0 4px 16px rgba(64, 64, 64, 0.15) !important;
         }
@@ -319,6 +354,11 @@ const Products = () => {
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [alertType, setAlertType] = useState("success");
+
+  // Search suggestions state
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchInputRef = useRef(null);
+  const searchContainerRef = useRef(null);
 
   // API Base URL
   const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8070/api";
@@ -535,6 +575,7 @@ const Products = () => {
   // Handle category filter change
   const handleCategoryChange = (categorySlug) => {
     setFilterCategory(categorySlug);
+    setCurrentPage(1); // Reset to first page
     updateURLParams({
       category: categorySlug === "all" ? undefined : categorySlug,
     });
@@ -543,10 +584,42 @@ const Products = () => {
   // Handle search term change
   const handleSearchChange = (term) => {
     setSearchTerm(term);
+    setCurrentPage(1); // Reset to first page
     updateURLParams({
       search: term,
     });
   };
+
+  // Handle search suggestions
+  const handleSearchFocus = () => {
+    setShowSuggestions(true);
+  };
+
+  const handleSearchBlur = () => {
+    // Delay hiding suggestions to allow for clicks
+    setTimeout(() => {
+      setShowSuggestions(false);
+    }, 200);
+  };
+
+  const handleSuggestionClick = (suggestion) => {
+    setShowSuggestions(false);
+  };
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(event.target)
+      ) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleAddToWishlist = async (productId) => {
     if (!isAuthenticated) {
@@ -799,62 +872,72 @@ const Products = () => {
               >
                 Search Products
               </label>
-              <InputGroup size="lg">
-                <InputGroup.Text
-                  className="search-icon"
-                  style={{
-                    backgroundColor: "#404040",
-                    borderColor: "#404040",
-                    color: "#ffffff",
-                    borderRadius: "12px 0 0 12px",
-                    border: "2px solid #404040",
-                    borderRight: "none",
-                  }}
-                >
-                  <Search size={20} />
-                </InputGroup.Text>
-                <Form.Control
-                  id="product-search"
-                  type="text"
-                  placeholder="Search by name, category, or brand..."
-                  value={searchTerm}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setSearchTerm(value);
-                    // Debounce URL update for search
-                    setTimeout(() => {
-                      if (value === e.target.value) {
-                        handleSearchChange(value);
+              <div ref={searchContainerRef} className="position-relative">
+                <InputGroup size="lg">
+                  <InputGroup.Text
+                    className="search-icon"
+                    style={{
+                      backgroundColor: "#404040",
+                      borderColor: "#404040",
+                      color: "#ffffff",
+                      borderRadius: "12px 0 0 12px",
+                      border: "2px solid #404040",
+                      borderRight: "none",
+                    }}
+                  >
+                    <Search size={20} />
+                  </InputGroup.Text>
+                  <Form.Control
+                    ref={searchInputRef}
+                    id="product-search"
+                    type="text"
+                    placeholder="Search by name, category, or brand..."
+                    value={searchTerm}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setSearchTerm(value);
+                      setShowSuggestions(value.length > 0);
+                      // Debounce URL update for search
+                      setTimeout(() => {
+                        if (value === e.target.value) {
+                          handleSearchChange(value);
+                        }
+                      }, 500);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleSearchChange(e.target.value);
+                        setShowSuggestions(false);
                       }
-                    }, 500);
+                    }}
+                    onFocus={handleSearchFocus}
+                    onBlur={handleSearchBlur}
+                    className="modern-search-input"
+                    style={{
+                      backgroundColor: "#ffffff",
+                      borderColor: "#404040",
+                      color: "#1d1d1b",
+                      borderRadius: "0 12px 12px 0",
+                      fontSize: "1rem",
+                      padding: "0.75rem 1rem",
+                      transition: "all 0.3s ease",
+                      border: "2px solid #404040",
+                      borderLeft: "none",
+                    }}
+                  />
+                </InputGroup>
+
+                {/* Search Suggestions */}
+                <SearchSuggestions
+                  query={searchTerm}
+                  isVisible={showSuggestions && searchTerm.length > 0}
+                  onSuggestionClick={handleSuggestionClick}
+                  onClose={() => {
+                    setShowSuggestions(false);
                   }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      handleSearchChange(e.target.value);
-                    }
-                  }}
-                  className="modern-search-input"
-                  style={{
-                    backgroundColor: "#ffffff",
-                    borderColor: "#404040",
-                    color: "#1d1d1b",
-                    borderRadius: "0 12px 12px 0",
-                    fontSize: "1rem",
-                    padding: "0.75rem 1rem",
-                    transition: "all 0.3s ease",
-                    border: "2px solid #404040",
-                    borderLeft: "none",
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.boxShadow =
-                      "0 0 0 3px rgba(64, 64, 64, 0.2)";
-                    e.target.style.borderColor = "#404040";
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.boxShadow = "none";
-                  }}
+                  apiBase={API_BASE}
                 />
-              </InputGroup>
+              </div>
             </Col>
             <Col lg={6}>
               <Row className="g-3">
