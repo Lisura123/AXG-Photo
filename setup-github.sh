@@ -49,9 +49,10 @@ echo "First, create a repository on GitHub:"
 echo "  1. Go to https://github.com"
 echo "  2. Click 'New repository'"
 echo "  3. Repository name: AXG-Photo"
-echo "  4. Make it PUBLIC (required for free GitHub Pages)"
-echo "  5. Don't initialize with README, .gitignore, or license"
-echo "  6. Click 'Create repository'"
+echo "  4. Description: Professional camera equipment store - React/Node.js e-commerce platform"
+echo "  5. Make it PUBLIC (required for free GitHub Pages)"
+echo "  6. Don't initialize with README, .gitignore, or license"
+echo "  7. Click 'Create repository'"
 echo ""
 
 read -p "Have you created the GitHub repository? (y/N): " created_repo

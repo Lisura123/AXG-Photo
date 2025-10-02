@@ -6,6 +6,37 @@
 - **Repository Name**: AXG-Photo
 - **Repository URL**: https://github.com/Lisura123/AXG-Photo
 - **GitHub Pages URL**: https://Lisura123.github.io/AXG-Photo
+- **Description**: Professional camera equipment store - React/Node.js e-commerce platform with user authentication, product catalog, wishlist functionality, and responsive design
+
+### 📝 About Your AXG Photo Repository
+
+**AXG Photo** is a modern, full-stack e-commerce website specializing in camera equipment and accessories. This repository contains:
+
+**🎨 Frontend Features:**
+
+- React 18 with responsive Bootstrap 5 design
+- User registration, login, and authentication
+- Product catalog with dynamic filtering
+- Personal wishlist functionality
+- Product reviews and ratings system
+- Mobile-optimized interface
+
+**⚙️ Backend Features:**
+
+- Node.js/Express API server
+- MongoDB database integration
+- JWT authentication system
+- File upload handling for product images
+- RESTful API endpoints
+- Secure user data management
+
+**🛒 E-commerce Capabilities:**
+
+- Camera batteries and chargers catalog
+- Lens filters (58mm, 67mm, 77mm) with smart filtering
+- Card readers and storage solutions
+- Camera backpacks and accessories
+- User-specific wishlists and cart functionality
 
 ---
 
@@ -15,9 +46,10 @@
 
 1. **Go to**: https://github.com/new
 2. **Repository name**: `AXG-Photo`
-3. **Make it PUBLIC** ✅ (required for free GitHub Pages)
-4. **Don't check any boxes** (we already have files)
-5. **Click "Create repository"**
+3. **Description**: `Professional camera equipment store - React/Node.js e-commerce platform with user authentication, product catalog, wishlist functionality, and responsive design`
+4. **Make it PUBLIC** ✅ (required for free GitHub Pages)
+5. **Don't check any boxes** (we already have files)
+6. **Click "Create repository"**
 
 ### Step 2: Run Automated Setup
 
