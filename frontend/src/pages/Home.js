@@ -380,6 +380,8 @@ const Home = () => {
                   </Button>
 
                   <Button
+                    as={Link}
+                    to="/about"
                     size="lg"
                     className="hero-learn-more-btn d-inline-flex align-items-center justify-content-center gap-3 px-6 py-4 btn-animated"
                     style={{
@@ -394,6 +396,7 @@ const Home = () => {
                       transition: "all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)",
                       textTransform: "uppercase",
                       letterSpacing: "1px",
+                      textDecoration: "none",
                     }}
                     onMouseEnter={(e) => {
                       e.target.style.background = "rgba(64, 64, 64, 0.1)";

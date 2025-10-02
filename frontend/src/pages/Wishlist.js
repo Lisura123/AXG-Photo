@@ -23,6 +23,7 @@ import {
   LogIn,
 } from "lucide-react";
 import { useApp } from "../context/AppContext";
+import { useAuth } from "../context/AuthContext";
 
 const Wishlist = () => {
   const navigate = useNavigate();
@@ -33,8 +34,10 @@ const Wishlist = () => {
     loadWishlist,
     error,
     clearError,
-    isAuthenticated,
   } = useApp();
+
+  // Get authentication state directly from AuthContext for more reliable checking
+  const { isAuthenticated, isLoading } = useAuth();
 
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
@@ -44,11 +47,23 @@ const Wishlist = () => {
 
   // Check authentication on component mount
   useEffect(() => {
+    // Don't check authentication while auth context is still loading
+    if (isLoading) {
+      return;
+    }
+
+    // Check authentication status and show modal if not authenticated
     if (!isAuthenticated) {
       setShowAuthModal(true);
       return;
     }
-  }, [isAuthenticated]);
+
+    // Only load wishlist if user is authenticated
+    loadWishlist();
+
+    // Clear any existing errors
+    return () => clearError();
+  }, [isAuthenticated, isLoading, loadWishlist, clearError]);
 
   // Handle authentication modal actions
   const handleSignUp = () => {
@@ -179,6 +194,130 @@ const Wishlist = () => {
       ));
   };
 
+  // Show authentication modal for unauthenticated users
+  if (!isAuthenticated && !isLoading) {
+    return (
+      <>
+        {/* Authentication Modal */}
+        <Modal
+          show={showAuthModal}
+          onHide={handleModalClose}
+          centered
+          backdrop="static"
+          keyboard={false}
+        >
+          <Modal.Header
+            style={{
+              backgroundColor: "#ffffff",
+              borderBottom: "1px solid rgba(64, 64, 64, 0.1)",
+              padding: "24px",
+            }}
+          >
+            <Modal.Title
+              style={{
+                color: "#1d1d1b",
+                fontSize: "1.5rem",
+                fontWeight: "700",
+                margin: 0,
+              }}
+            >
+              Sign In Required
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body
+            style={{
+              backgroundColor: "#ffffff",
+              padding: "32px 24px",
+            }}
+          >
+            <div className="text-center">
+              <div
+                className="mb-4 mx-auto"
+                style={{
+                  width: "80px",
+                  height: "80px",
+                  borderRadius: "50%",
+                  backgroundColor: "#fafafa",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  border: "3px solid rgba(64, 64, 64, 0.1)",
+                }}
+              >
+                <Heart size={40} style={{ color: "#404040", opacity: 0.7 }} />
+              </div>
+              <p
+                style={{
+                  color: "#404040",
+                  fontSize: "1.1rem",
+                  lineHeight: "1.6",
+                  margin: "0 0 24px 0",
+                }}
+              >
+                Please sign in to view and manage your wishlist. Create an
+                account or log in to save your favorite products.
+              </p>
+            </div>
+          </Modal.Body>
+          <Modal.Footer
+            style={{
+              backgroundColor: "#ffffff",
+              borderTop: "1px solid rgba(64, 64, 64, 0.1)",
+              padding: "20px 24px 24px",
+              gap: "12px",
+            }}
+          >
+            <Button
+              variant="outline-secondary"
+              onClick={handleModalClose}
+              style={{
+                borderColor: "#404040",
+                color: "#404040",
+                borderRadius: "10px",
+                padding: "12px 20px",
+                fontWeight: "600",
+                fontSize: "0.95rem",
+              }}
+            >
+              Go Back
+            </Button>
+            <Button
+              onClick={handleSignUp}
+              style={{
+                backgroundColor: "#404040",
+                borderColor: "#404040",
+                color: "#ffffff",
+                borderRadius: "10px",
+                padding: "12px 20px",
+                fontWeight: "600",
+                fontSize: "0.95rem",
+                marginRight: "8px",
+              }}
+            >
+              <UserPlus size={16} className="me-2" />
+              Sign Up
+            </Button>
+            <Button
+              onClick={handleLogin}
+              style={{
+                backgroundColor: "#1d1d1b",
+                borderColor: "#1d1d1b",
+                color: "#ffffff",
+                borderRadius: "10px",
+                padding: "12px 20px",
+                fontWeight: "600",
+                fontSize: "0.95rem",
+              }}
+            >
+              <LogIn size={16} className="me-2" />
+              Log In
+            </Button>
+          </Modal.Footer>
+        </Modal>
+      </>
+    );
+  }
+
   if (wishlistLoading && !refreshing) {
     return (
       <div
@@ -274,139 +413,13 @@ const Wishlist = () => {
   }
 
   return (
-    <>
-      {/* Authentication Modal */}
-      <Modal
-        show={showAuthModal}
-        onHide={handleModalClose}
-        centered
-        backdrop="static"
-        keyboard={false}
-      >
-        <Modal.Header
-          closeButton
-          style={{
-            backgroundColor: "#ffffff",
-            borderBottom: "1px solid rgba(64, 64, 64, 0.1)",
-            padding: "20px 24px",
-          }}
-        >
-          <Modal.Title
-            style={{
-              color: "#1d1d1b",
-              fontWeight: "600",
-              fontSize: "1.25rem",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-            }}
-          >
-            <Heart size={24} style={{ color: "#1d1d1b" }} />
-            Access Your Wishlist
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body
-          style={{
-            backgroundColor: "#ffffff",
-            padding: "24px",
-            textAlign: "center",
-          }}
-        >
-          <div style={{ marginBottom: "20px" }}>
-            <p
-              style={{
-                color: "#1d1d1b",
-                fontSize: "1.1rem",
-                fontWeight: "500",
-                marginBottom: "12px",
-              }}
-            >
-              Please sign up or log in to access your wishlist
-            </p>
-            <p
-              style={{
-                color: "#404040",
-                fontSize: "0.95rem",
-                marginBottom: "0",
-                lineHeight: "1.5",
-              }}
-            >
-              Create an account to save your favorite products and access them
-              from any device.
-            </p>
-          </div>
-        </Modal.Body>
-        <Modal.Footer
-          style={{
-            backgroundColor: "#ffffff",
-            borderTop: "1px solid rgba(64, 64, 64, 0.1)",
-            padding: "20px 24px",
-            gap: "12px",
-          }}
-        >
-          <Button
-            variant="outline-secondary"
-            onClick={handleSignUp}
-            style={{
-              backgroundColor: "transparent",
-              borderColor: "#404040",
-              color: "#404040",
-              fontWeight: "500",
-              padding: "10px 24px",
-              borderRadius: "8px",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              transition: "all 0.3s ease",
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.backgroundColor = "#404040";
-              e.target.style.color = "#ffffff";
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.backgroundColor = "transparent";
-              e.target.style.color = "#404040";
-            }}
-          >
-            <UserPlus size={16} />
-            Sign Up
-          </Button>
-          <Button
-            onClick={handleLogin}
-            style={{
-              backgroundColor: "#1d1d1b",
-              borderColor: "#1d1d1b",
-              color: "#ffffff",
-              fontWeight: "500",
-              padding: "10px 24px",
-              borderRadius: "8px",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              transition: "all 0.3s ease",
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.backgroundColor = "#404040";
-              e.target.style.borderColor = "#404040";
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.backgroundColor = "#1d1d1b";
-              e.target.style.borderColor = "#1d1d1b";
-            }}
-          >
-            <LogIn size={16} />
-            Log In
-          </Button>
-        </Modal.Footer>
-      </Modal>
-
-      <div
-        style={{ paddingTop: "76px", backgroundColor: "#ffffff" }}
-        className="min-vh-100"
-      >
-        {/* Enhanced CSS Styles */}
-        <style>
-          {`
+    <div
+      style={{ paddingTop: "76px", backgroundColor: "#ffffff" }}
+      className="min-vh-100"
+    >
+      {/* Enhanced CSS Styles */}
+      <style>
+        {`
         @keyframes spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
@@ -514,304 +527,301 @@ const Wishlist = () => {
           border-bottom: 2px solid rgba(64, 64, 64, 0.1);
         }
         `}
-        </style>
-        <Container className="py-5">
-          {/* Alert Messages */}
-          {showAlert && (
-            <Alert
-              variant={alertType}
-              dismissible
-              onClose={() => setShowAlert(false)}
-              className="position-fixed"
+      </style>
+      <Container className="py-5">
+        {/* Alert Messages */}
+        {showAlert && (
+          <Alert
+            variant={alertType}
+            dismissible
+            onClose={() => setShowAlert(false)}
+            className="position-fixed"
+            style={{
+              top: "100px",
+              right: "20px",
+              zIndex: 1050,
+              width: "300px",
+            }}
+          >
+            {alertMessage}
+          </Alert>
+        )}
+
+        {/* Header */}
+        <Row className="page-header align-items-center">
+          <Col>
+            <div className="d-flex align-items-center justify-content-between mb-2">
+              <div className="d-flex align-items-center">
+                <Heart
+                  size={32}
+                  className="me-3"
+                  style={{ color: "#404040" }}
+                  fill="#404040"
+                />
+                <h1
+                  className="display-6 fw-bold mb-0"
+                  style={{
+                    color: "#1d1d1b",
+                    letterSpacing: "-0.02em",
+                  }}
+                >
+                  My Wishlist
+                </h1>
+              </div>
+              <Button
+                variant="outline-secondary"
+                size="sm"
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className="d-flex align-items-center"
+                title="Refresh wishlist"
+              >
+                <RotateCcw size={16} className={refreshing ? "spin" : ""} />
+                {refreshing && <span className="ms-1">Refreshing...</span>}
+              </Button>
+            </div>
+            <p
+              className="mb-0"
               style={{
-                top: "100px",
-                right: "20px",
-                zIndex: 1050,
-                width: "300px",
+                color: "#404040",
+                fontSize: "1rem",
+                fontWeight: "500",
               }}
             >
-              {alertMessage}
-            </Alert>
-          )}
-
-          {/* Header */}
-          <Row className="page-header align-items-center">
-            <Col>
-              <div className="d-flex align-items-center justify-content-between mb-2">
-                <div className="d-flex align-items-center">
-                  <Heart
-                    size={32}
-                    className="me-3"
-                    style={{ color: "#404040" }}
-                    fill="#404040"
-                  />
-                  <h1
-                    className="display-6 fw-bold mb-0"
-                    style={{
-                      color: "#1d1d1b",
-                      letterSpacing: "-0.02em",
-                    }}
-                  >
-                    My Wishlist
-                  </h1>
-                </div>
+              {wishlist.length} {wishlist.length === 1 ? "item" : "items"} saved
+              for later
+            </p>
+          </Col>
+          <Col xs="auto">
+            <div className="d-flex gap-3">
+              {wishlist.filter((item) => item.inStock).length > 0 && (
                 <Button
-                  variant="outline-secondary"
-                  size="sm"
-                  onClick={handleRefresh}
-                  disabled={refreshing}
-                  className="d-flex align-items-center"
-                  title="Refresh wishlist"
-                >
-                  <RotateCcw size={16} className={refreshing ? "spin" : ""} />
-                  {refreshing && <span className="ms-1">Refreshing...</span>}
-                </Button>
-              </div>
-              <p
-                className="mb-0"
-                style={{
-                  color: "#404040",
-                  fontSize: "1rem",
-                  fontWeight: "500",
-                }}
-              >
-                {wishlist.length} {wishlist.length === 1 ? "item" : "items"}{" "}
-                saved for later
-              </p>
-            </Col>
-            <Col xs="auto">
-              <div className="d-flex gap-3">
-                {wishlist.filter((item) => item.inStock).length > 0 && (
-                  <Button
-                    onClick={clearAllWishlist}
-                    className="d-flex align-items-center gap-2 wishlist-action-btn wishlist-primary-btn"
-                    style={{
-                      padding: "12px 24px",
-                      borderRadius: "12px",
-                      fontWeight: "600",
-                    }}
-                  >
-                    <Trash2 size={18} />
-                    Clear Wishlist
-                  </Button>
-                )}
-                <Button
-                  as={Link}
-                  to="/products"
-                  className="d-flex align-items-center gap-2 wishlist-action-btn wishlist-secondary-btn"
+                  onClick={clearAllWishlist}
+                  className="d-flex align-items-center gap-2 wishlist-action-btn wishlist-primary-btn"
                   style={{
                     padding: "12px 24px",
                     borderRadius: "12px",
                     fontWeight: "600",
                   }}
                 >
-                  <ArrowLeft size={18} />
-                  Continue Shopping
+                  <Trash2 size={18} />
+                  Clear Wishlist
                 </Button>
-              </div>
-            </Col>
-          </Row>
-
-          {/* Wishlist Items */}
-          <Row className="g-4">
-            {wishlist.map((item) => (
-              <Col key={item._id} xs={12} sm={6} md={4} lg={3}>
-                <Card className="h-100 wishlist-card">
-                  <div className="wishlist-image-container">
-                    <img
-                      src={getImageUrl(item)}
-                      alt={item.name}
-                      className="wishlist-image"
-                    />
-
-                    {/* Remove from Wishlist */}
-                    <Button
-                      size="sm"
-                      className="wishlist-remove-btn position-absolute top-0 end-0 m-3"
-                      style={{
-                        width: "40px",
-                        height: "40px",
-                        borderRadius: "12px",
-                        backgroundColor: "rgba(255, 255, 255, 0.9)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                      onClick={() => removeFromWishlist(item._id)}
-                    >
-                      <Heart size={18} fill="#dc3545" color="#dc3545" />
-                    </Button>
-                  </div>
-
-                  <Card.Body className="d-flex flex-column p-3">
-                    <Card.Title className="wishlist-title">
-                      {item.name}
-                    </Card.Title>
-
-                    {/* Rating */}
-                    <div className="wishlist-rating d-flex align-items-center">
-                      <div className="me-2">{renderStars(item.rating)}</div>
-                      <small
-                        style={{
-                          color: "#404040",
-                          fontSize: "0.8rem",
-                          fontWeight: "500",
-                        }}
-                      >
-                        {item.rating} ({item.reviews} reviews)
-                      </small>
-                    </div>
-
-                    {/* Stock Status */}
-                    <div className="mb-2">
-                      <Badge
-                        className="stock-badge"
-                        style={{
-                          backgroundColor: item.inStock ? "#28a745" : "#6c757d",
-                          color: "#ffffff",
-                        }}
-                      >
-                        {item.inStock ? "✓ In Stock" : "⚠ Out of Stock"}
-                      </Badge>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="mt-auto">
-                      <div className="d-grid gap-2">
-                        {/* Primary Action Button */}
-                        <Button
-                          onClick={() => handleViewToBuy(item)}
-                          disabled={!item.inStock}
-                          className={`w-100 d-flex align-items-center justify-content-center gap-2 wishlist-action-btn ${
-                            item.inStock ? "wishlist-primary-btn" : ""
-                          }`}
-                          style={{
-                            backgroundColor: item.inStock
-                              ? "#404040"
-                              : "#6c757d",
-                            borderColor: item.inStock ? "#404040" : "#6c757d",
-                            color: "#ffffff",
-                            borderRadius: "10px",
-                            padding: "10px 14px",
-                            fontWeight: "600",
-                            fontSize: "0.85rem",
-                            cursor: item.inStock ? "pointer" : "not-allowed",
-                          }}
-                        >
-                          <Eye size={16} />
-                          {item.inStock ? "View to Buy" : "Out of Stock"}
-                        </Button>
-
-                        {/* Secondary Action Buttons */}
-                        <div className="d-flex gap-2">
-                          <Button
-                            as={Link}
-                            to={`/product/${item.id}`}
-                            className="flex-fill d-flex align-items-center justify-content-center gap-2 wishlist-action-btn wishlist-secondary-btn"
-                          >
-                            <Eye size={14} />
-                            View Details
-                          </Button>
-                          <Button
-                            onClick={() => removeFromWishlist(item._id)}
-                            className="flex-fill d-flex align-items-center justify-content-center gap-2 wishlist-action-btn"
-                            style={{
-                              backgroundColor: "transparent",
-                              border: "2px solid #dc3545",
-                              color: "#dc3545",
-                              borderRadius: "8px",
-                              padding: "8px 12px",
-                              fontWeight: "600",
-                              fontSize: "0.8rem",
-                              transition: "all 0.3s ease",
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = "#dc3545";
-                              e.currentTarget.style.color = "#ffffff";
-                              e.currentTarget.style.transform =
-                                "translateY(-2px)";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor =
-                                "transparent";
-                              e.currentTarget.style.color = "#dc3545";
-                              e.currentTarget.style.transform = "translateY(0)";
-                            }}
-                          >
-                            <Trash2 size={14} />
-                            Remove
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </Card.Body>
-                </Card>
-              </Col>
-            ))}
-          </Row>
-
-          {/* Recommendations */}
-          <Row
-            className="mt-5 pt-4"
-            style={{ borderTop: "2px solid rgba(64, 64, 64, 0.1)" }}
-          >
-            <Col>
-              <Card
-                className="border-0"
+              )}
+              <Button
+                as={Link}
+                to="/products"
+                className="d-flex align-items-center gap-2 wishlist-action-btn wishlist-secondary-btn"
                 style={{
-                  backgroundColor: "#fafafa",
-                  borderRadius: "20px",
-                  border: "1px solid rgba(64, 64, 64, 0.1)",
+                  padding: "12px 24px",
+                  borderRadius: "12px",
+                  fontWeight: "600",
                 }}
               >
-                <Card.Body className="text-center py-5 px-4">
-                  <div className="mb-4">
-                    <ShoppingBag size={48} style={{ color: "#404040" }} />
-                  </div>
-                  <h4
-                    className="mb-3 fw-bold"
-                    style={{
-                      color: "#1d1d1b",
-                      letterSpacing: "-0.01em",
-                    }}
-                  >
-                    Discover More Amazing Products
-                  </h4>
-                  <p
-                    className="mb-4"
-                    style={{
-                      color: "#404040",
-                      fontSize: "1rem",
-                      lineHeight: "1.6",
-                      maxWidth: "500px",
-                      margin: "0 auto",
-                    }}
-                  >
-                    Explore our complete collection of premium photography
-                    equipment, accessories, and professional gear to enhance
-                    your creative journey.
-                  </p>
+                <ArrowLeft size={18} />
+                Continue Shopping
+              </Button>
+            </div>
+          </Col>
+        </Row>
+
+        {/* Wishlist Items */}
+        <Row className="g-4">
+          {wishlist.map((item) => (
+            <Col key={item._id} xs={12} sm={6} md={4} lg={3}>
+              <Card className="h-100 wishlist-card">
+                <div className="wishlist-image-container">
+                  <img
+                    src={getImageUrl(item)}
+                    alt={item.name}
+                    className="wishlist-image"
+                  />
+
+                  {/* Remove from Wishlist */}
                   <Button
-                    as={Link}
-                    to="/products"
-                    className="d-inline-flex align-items-center gap-3 wishlist-action-btn wishlist-primary-btn"
+                    size="sm"
+                    className="wishlist-remove-btn position-absolute top-0 end-0 m-3"
                     style={{
-                      padding: "16px 32px",
-                      borderRadius: "14px",
-                      fontSize: "1rem",
-                      fontWeight: "700",
+                      width: "40px",
+                      height: "40px",
+                      borderRadius: "12px",
+                      backgroundColor: "rgba(255, 255, 255, 0.9)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
                     }}
+                    onClick={() => removeFromWishlist(item._id)}
                   >
-                    <ShoppingBag size={20} />
-                    Browse All Products
+                    <Heart size={18} fill="#dc3545" color="#dc3545" />
                   </Button>
+                </div>
+
+                <Card.Body className="d-flex flex-column p-3">
+                  <Card.Title className="wishlist-title">
+                    {item.name}
+                  </Card.Title>
+
+                  {/* Rating */}
+                  <div className="wishlist-rating d-flex align-items-center">
+                    <div className="me-2">{renderStars(item.rating)}</div>
+                    <small
+                      style={{
+                        color: "#404040",
+                        fontSize: "0.8rem",
+                        fontWeight: "500",
+                      }}
+                    >
+                      {item.rating} ({item.reviews} reviews)
+                    </small>
+                  </div>
+
+                  {/* Stock Status */}
+                  <div className="mb-2">
+                    <Badge
+                      className="stock-badge"
+                      style={{
+                        backgroundColor: item.inStock ? "#28a745" : "#6c757d",
+                        color: "#ffffff",
+                      }}
+                    >
+                      {item.inStock ? "✓ In Stock" : "⚠ Out of Stock"}
+                    </Badge>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="mt-auto">
+                    <div className="d-grid gap-2">
+                      {/* Primary Action Button */}
+                      <Button
+                        onClick={() => handleViewToBuy(item)}
+                        disabled={!item.inStock}
+                        className={`w-100 d-flex align-items-center justify-content-center gap-2 wishlist-action-btn ${
+                          item.inStock ? "wishlist-primary-btn" : ""
+                        }`}
+                        style={{
+                          backgroundColor: item.inStock ? "#404040" : "#6c757d",
+                          borderColor: item.inStock ? "#404040" : "#6c757d",
+                          color: "#ffffff",
+                          borderRadius: "10px",
+                          padding: "10px 14px",
+                          fontWeight: "600",
+                          fontSize: "0.85rem",
+                          cursor: item.inStock ? "pointer" : "not-allowed",
+                        }}
+                      >
+                        <Eye size={16} />
+                        {item.inStock ? "View to Buy" : "Out of Stock"}
+                      </Button>
+
+                      {/* Secondary Action Buttons */}
+                      <div className="d-flex gap-2">
+                        <Button
+                          as={Link}
+                          to={`/product/${item.id}`}
+                          className="flex-fill d-flex align-items-center justify-content-center gap-2 wishlist-action-btn wishlist-secondary-btn"
+                        >
+                          <Eye size={14} />
+                          View Details
+                        </Button>
+                        <Button
+                          onClick={() => removeFromWishlist(item._id)}
+                          className="flex-fill d-flex align-items-center justify-content-center gap-2 wishlist-action-btn"
+                          style={{
+                            backgroundColor: "transparent",
+                            border: "2px solid #dc3545",
+                            color: "#dc3545",
+                            borderRadius: "8px",
+                            padding: "8px 12px",
+                            fontWeight: "600",
+                            fontSize: "0.8rem",
+                            transition: "all 0.3s ease",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = "#dc3545";
+                            e.currentTarget.style.color = "#ffffff";
+                            e.currentTarget.style.transform =
+                              "translateY(-2px)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                              "transparent";
+                            e.currentTarget.style.color = "#dc3545";
+                            e.currentTarget.style.transform = "translateY(0)";
+                          }}
+                        >
+                          <Trash2 size={14} />
+                          Remove
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
                 </Card.Body>
               </Card>
             </Col>
-          </Row>
-        </Container>
-      </div>
-    </>
+          ))}
+        </Row>
+
+        {/* Recommendations */}
+        <Row
+          className="mt-5 pt-4"
+          style={{ borderTop: "2px solid rgba(64, 64, 64, 0.1)" }}
+        >
+          <Col>
+            <Card
+              className="border-0"
+              style={{
+                backgroundColor: "#fafafa",
+                borderRadius: "20px",
+                border: "1px solid rgba(64, 64, 64, 0.1)",
+              }}
+            >
+              <Card.Body className="text-center py-5 px-4">
+                <div className="mb-4">
+                  <ShoppingBag size={48} style={{ color: "#404040" }} />
+                </div>
+                <h4
+                  className="mb-3 fw-bold"
+                  style={{
+                    color: "#1d1d1b",
+                    letterSpacing: "-0.01em",
+                  }}
+                >
+                  Discover More Amazing Products
+                </h4>
+                <p
+                  className="mb-4"
+                  style={{
+                    color: "#404040",
+                    fontSize: "1rem",
+                    lineHeight: "1.6",
+                    maxWidth: "500px",
+                    margin: "0 auto",
+                  }}
+                >
+                  Explore our complete collection of premium photography
+                  equipment, accessories, and professional gear to enhance your
+                  creative journey.
+                </p>
+                <Button
+                  as={Link}
+                  to="/products"
+                  className="d-inline-flex align-items-center gap-3 wishlist-action-btn wishlist-primary-btn"
+                  style={{
+                    padding: "16px 32px",
+                    borderRadius: "14px",
+                    fontSize: "1rem",
+                    fontWeight: "700",
+                  }}
+                >
+                  <ShoppingBag size={20} />
+                  Browse All Products
+                </Button>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+      </Container>
+    </div>
   );
 };
 
